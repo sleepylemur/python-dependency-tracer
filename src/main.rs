@@ -6,44 +6,32 @@ use std::path::{Path, PathBuf};
 use std::{env, fs};
 
 fn parse_imports(source_code: &str, path: &Path) -> Vec<String> {
+    let mut imported_modules = vec![];
     let ast = parse_program(source_code, path.to_str().unwrap()).unwrap();
     for located in ast {
         let node = located.node;
         match &node {
             ast::StmtKind::Import { names } => {
                 for import_name in names {
-                    let module_name = &import_name.node;
-                    let alias = match &module_name.asname {
-                        Some(alias) => format!(" as {}", alias),
-                        None => "".to_string(),
-                    };
-                    println!("Import: {}{}", module_name.name, alias);
+                    let module_name = import_name.node.name.to_string();
+                    imported_modules.push(module_name);
                 }
             }
             ast::StmtKind::ImportFrom {
                 level,
                 module,
-                names,
+                names: _,
             } => {
                 let module_name = match &module {
                     Some(module) => module.to_string(),
                     None => ".".repeat(level.unwrap_or(0) as usize),
                 };
-                for import_name in names {
-                    let import_item = &import_name.node;
-                    let alias = match &import_item.asname {
-                        Some(alias) => format!(" as {}", alias),
-                        None => "".to_string(),
-                    };
-                    println!("Import: {} from {}{}", import_item.name, module_name, alias);
-                }
+                imported_modules.push(module_name);
             }
-            _ => {
-                println!("Not a function {:?}", node);
-            }
+            _ => {}
         }
     }
-    Vec::new()
+    imported_modules
 }
 
 fn get_python_paths(dir: &Path) -> io::Result<Vec<PathBuf>> {
@@ -93,14 +81,19 @@ fn main() -> io::Result<()> {
             modules_to_paths.insert(get_module_name(&relative_path), path);
         }
     }
-    println!("{:?}", modules_to_paths);
+    println!("modules_to_paths {:?}", modules_to_paths);
+
+    let mut module_imports = HashMap::new();
 
     for (module, path) in modules_to_paths.iter() {
         println!("Parsing {} from {:?}", module, path);
         let mut source_code = String::new();
         File::open(path)?.read_to_string(&mut source_code)?;
-        parse_imports(&source_code, path);
+        let imports = parse_imports(&source_code, path);
+        module_imports.insert(module.to_string(), imports);
     }
+
+    println!("module_imports {:?}", module_imports);
 
     Ok(())
 }
