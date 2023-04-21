@@ -1,0 +1,2 @@
+def bingbam():
+    return "bingbam"

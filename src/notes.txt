@@ -1,0 +1,55 @@
+filter out modules that aren't in the current project
+
+directory, file, function/method/class
+graph of files and their dependencies
+graph of the dependencies of a particular function or method
+http endpoints
+database tables
+ 
+asdf       |         |  asf
+asdfas     |  bim    |  sdf.file1
+dfas       | sdfsf   |  sdf.file2
+filesf     |         |  sfff
+
+
+
+for a given directory:
+directories imported in other directories.
+all imports -> list of imports + number of times imported.
+all functions -> what files use them, what functions use them.
+all classes -> what files use them, what functions use them.
+
+class hierarchy -> chase the parent all the way up. And then pass the parent classes into gpt for summarization.
+gpt documented map of a project or module or set of classes
+
+
+class SadService(ServiceBase):
+    ...
+
+class TimService(ServiceBase):
+    def bingbam(self):
+        print('bing! bam!')
+
+-----------------------------
+from nook import container
+
+class HappyService(ServiceBase):
+    sad_service = attach_property('SadService')
+
+    def __init__(self):
+        tim_service = container.get('TimService')
+    
+    def foo(self):
+        tim_service.bingbam();
+
+
+per file.
+file_map = {
+    'functions':[list of functions names],
+    'imports': [list of imports names]
+}
+
+struct FileMap {
+    functions: Vec<String>,
+    imports: Vec<String>,
+}
