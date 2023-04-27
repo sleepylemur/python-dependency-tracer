@@ -472,6 +472,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "pydep"
+version = "0.1.0"
+dependencies = [
+ "rustpython-parser",
+]
+
+[[package]]
 name = "quote"
 version = "1.0.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -739,13 +746,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2c9d3793400a45f954c52e73d068316d76b6f4e36977e3fcebb13a2721e80237"
 dependencies = [
  "crunchy",
-]
-
-[[package]]
-name = "trace3"
-version = "0.1.0"
-dependencies = [
- "rustpython-parser",
 ]
 
 [[package]]
