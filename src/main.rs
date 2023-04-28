@@ -1,3 +1,4 @@
+use ptree::TreeBuilder;
 use rustpython_parser::{ast, parser::parse_program};
 use std::collections::HashMap;
 use std::fs::File;
@@ -57,9 +58,39 @@ fn get_module_name(path: &Path) -> String {
     format!("{}.{}", parent, stem)
 }
 
+fn print_transitive_deps(module_imports: &HashMap<String, Vec<String>>, module_name: &str) {
+    // Build a tree representing the transitive dependencies of the module
+    let mut tree_builder = TreeBuilder::new(module_name.to_string());
+    add_dependencies_to_tree(&mut tree_builder, module_imports, module_name);
+    let tree = tree_builder.build();
+
+    // Print the tree
+    ptree::print_tree(&tree);
+}
+
+// Recursively add the dependencies of a module to a tree
+fn add_dependencies_to_tree(
+    tree_builder: &mut TreeBuilder,
+    module_imports: &HashMap<String, Vec<String>>,
+    module_name: &str,
+) {
+    if let Some(imports) = module_imports.get(module_name) {
+        for import in imports {
+            // Add the dependency to the tree
+            let child_builder = tree_builder.begin_child(import.to_string());
+
+            // Recursively add the dependencies of the dependency to the tree
+            add_dependencies_to_tree(child_builder, module_imports, import);
+
+            tree_builder.end_child();
+        }
+    }
+}
+
 fn main() -> io::Result<()> {
     let args: Vec<_> = env::args().collect();
     let base_path = Path::new(&args[1]);
+    let module_name = &args[2];
 
     let python_paths = get_python_paths(base_path)?;
 
@@ -81,19 +112,17 @@ fn main() -> io::Result<()> {
             modules_to_paths.insert(get_module_name(&relative_path), path);
         }
     }
-    println!("modules_to_paths {:?}", modules_to_paths);
 
     let mut module_imports = HashMap::new();
 
     for (module, path) in modules_to_paths.iter() {
-        println!("Parsing {} from {:?}", module, path);
         let mut source_code = String::new();
         File::open(path)?.read_to_string(&mut source_code)?;
         let imports = parse_imports(&source_code, path);
         module_imports.insert(module.to_string(), imports);
     }
 
-    println!("module_imports {:?}", module_imports);
+    print_transitive_deps(&module_imports, &module_name);
 
     Ok(())
 }

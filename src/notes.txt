@@ -1,5 +1,7 @@
 filter out modules that aren't in the current project
 
+given a function name and a module, find all callers of the function and callers of callers, and print them in a tree format
+
 directory, file, function/method/class
 graph of files and their dependencies
 graph of the dependencies of a particular function or method

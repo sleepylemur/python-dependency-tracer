@@ -9,10 +9,10 @@ cargo install --git https://github.com/sleepylemur/python-dependency-tracer
 
 ## Run
 
-pydep example_project
+pydep example_project packagename
 
 ## Run/install from local repo
 
-cargo run example_project
+cargo run example_project packagename
 
 cargo install --path .
