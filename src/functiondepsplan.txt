@@ -1,0 +1,11 @@
+function deps
+implement one piece at a time
+
+- importfrom
+- direct function calls
+- import module
+- module.function calls
+- import \*
+- class method calls
+- trace method deps through class constructor
+

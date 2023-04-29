@@ -4,3 +4,7 @@ def zordom():
 
 def zoomier():
     print("zoomier")
+
+
+def zuglug():
+    print("zuglug")
