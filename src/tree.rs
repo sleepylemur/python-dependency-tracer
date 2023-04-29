@@ -62,7 +62,7 @@ pub fn add_function_dependencies_to_tree(
             module_imports.insert(module);
         }
 
-        if let Some((function, calls)) = functions
+        if let Some((_, calls)) = functions
             .iter()
             .find(|(function, _)| function == function_name)
         {
