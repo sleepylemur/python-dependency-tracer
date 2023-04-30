@@ -1,3 +1,4 @@
+use clap::Parser;
 use kind_parsing::find_calls_in_stmt;
 use rustpython_parser::{ast, parser::parse_program};
 use std::collections::HashMap;
@@ -125,13 +126,29 @@ fn build_module_to_paths(base_path: &Path) -> io::Result<HashMap<String, PathBuf
     Ok(modules_to_paths)
 }
 
-fn main() -> io::Result<()> {
-    let args: Vec<_> = env::args().collect();
-    let base_path = Path::new(&args[1]);
-    let module_name = &args[2];
-    let function_name = args.get(3).map(|s| s.as_str());
+#[derive(Parser)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    /// The project to analyze
+    #[arg(short, long)]
+    project: PathBuf,
 
-    let modules_to_paths = build_module_to_paths(base_path)?;
+    /// The module to analyze
+    #[arg(short, long)]
+    module: String,
+
+    /// Optional function to analyze
+    #[arg(short, long)]
+    function: Option<String>,
+}
+
+fn main() -> io::Result<()> {
+    let args: Args = Args::parse();
+    let base_path = args.project;
+    let module_name = args.module;
+    let function_name = args.function;
+
+    let modules_to_paths = build_module_to_paths(&base_path)?;
 
     let mut modules = HashMap::new();
 
@@ -141,7 +158,7 @@ fn main() -> io::Result<()> {
         let module = parse_module(&module_name, &source_code, path);
         modules.insert(module_name.to_string(), module);
     }
-    print_transitive_deps(&modules, &module_name, function_name)?;
+    print_transitive_deps(&modules, &module_name, function_name.as_deref())?;
 
     Ok(())
 }

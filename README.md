@@ -11,14 +11,14 @@ cargo install --git https://github.com/sleepylemur/python-dependency-tracer
 
 ### module dependencies
 
-pydep example_project modulename
+pydep -p example_project -m modulename
 
 ### function dependencies
 
-pydep example_project modulename functionname
+pydep -p example_project -m modulename -f functionname
 
 ## Run/install from local repo
 
-cargo run example_project modulename
+cargo run -- -p example_project -m modulename
 
-cargo install --path .
+cargo install --path .gi

@@ -9,4 +9,4 @@ edition = "2021"
 [dependencies]
 rustpython-parser = "0.2.0"
 ptree = "0.4.0"
-
+clap = {version = "4.2.5", features = ["derive"]}

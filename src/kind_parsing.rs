@@ -1,6 +1,6 @@
 use rustpython_parser::ast::{self, ExprKind, StmtKind};
 
-pub fn convert_attribute_to_name(node: &ExprKind) -> String {
+pub fn convert_attribute_to_name(node: &ExprKind) -> Option<String> {
     let mut name = String::new();
     let mut node = node;
     loop {
@@ -15,12 +15,11 @@ pub fn convert_attribute_to_name(node: &ExprKind) -> String {
             }
             ExprKind::Name { id, .. } => {
                 name = format!("{}.{}", id, name);
-                break;
+                return Some(name);
             }
-            _ => panic!("Expected name or attribute, found {:?}", node),
+            _ => return None,
         }
     }
-    name
 }
 
 pub fn find_calls_in_expr(node: &ExprKind) -> Vec<String> {
@@ -141,14 +140,14 @@ pub fn find_calls_in_expr(node: &ExprKind) -> Vec<String> {
             args,
             keywords: _,
         } => {
-            match &func.node {
-                ExprKind::Attribute { .. } => {
-                    calls.push(convert_attribute_to_name(&func.node));
-                }
-                ExprKind::Name { id, ctx: _ } => {
-                    calls.push(id.to_string());
-                }
-                _ => {}
+            if let Some(name) = match &func.node {
+                ExprKind::Attribute { .. } => convert_attribute_to_name(&func.node),
+                ExprKind::Name { id, ctx: _ } => Some(id.to_string()),
+                _ => None,
+            } {
+                calls.push(name);
+            } else {
+                calls.append(&mut find_calls_in_expr(&func.node));
             }
             for arg in args {
                 calls.append(&mut find_calls_in_expr(&arg.node));
