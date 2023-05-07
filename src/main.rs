@@ -2,10 +2,10 @@ use clap::Parser;
 use kind_parsing::find_calls_in_stmt;
 use rustpython_parser::{ast, parser::parse_program};
 use std::collections::HashMap;
+use std::fs;
 use std::fs::File;
 use std::io::{self, Read};
 use std::path::{Path, PathBuf};
-use std::{env, fs};
 use tree::print_transitive_deps;
 
 #[derive(Debug)]
@@ -15,6 +15,13 @@ pub struct PyModule {
     imports: Vec<String>,
     import_froms: Vec<(String, Vec<String>)>,
     functions: Vec<(String, Vec<String>)>,
+    classes: Vec<PyClass>,
+}
+
+#[derive(Debug)]
+pub struct PyClass {
+    name: String,
+    methods: Vec<(String, Vec<String>)>,
 }
 
 impl PyModule {
@@ -25,6 +32,7 @@ impl PyModule {
             imports: vec![],
             import_froms: vec![],
             functions: vec![],
+            classes: vec![],
         }
     }
 }
@@ -66,7 +74,8 @@ fn parse_module(name: &str, source_code: &str, path: &Path) -> PyModule {
                 decorator_list: _,
                 returns: _,
                 type_comment: _,
-            } | ast::StmtKind::AsyncFunctionDef {
+            }
+            | ast::StmtKind::AsyncFunctionDef {
                 name,
                 args: _,
                 body,
@@ -79,6 +88,46 @@ fn parse_module(name: &str, source_code: &str, path: &Path) -> PyModule {
                     calls.append(&mut find_calls_in_stmt(&stmt.node));
                 }
                 parsed_module.functions.push((name.to_string(), calls));
+            }
+            ast::StmtKind::ClassDef {
+                name: class_name,
+                bases,
+                body,
+                keywords: _,
+                decorator_list: _,
+            } => {
+                let mut methods = vec![];
+                for stmt in body {
+                    match &stmt.node {
+                        ast::StmtKind::FunctionDef {
+                            name,
+                            args,
+                            body,
+                            decorator_list,
+                            returns,
+                            type_comment,
+                        }
+                        | ast::StmtKind::AsyncFunctionDef {
+                            name,
+                            args,
+                            body,
+                            decorator_list,
+                            returns,
+                            type_comment,
+                        } => {
+                            let mut calls = vec![];
+                            for stmt in body {
+                                calls.append(&mut find_calls_in_stmt(&stmt.node));
+                            }
+                            methods.push((name.to_string(), calls));
+                        }
+                        _ => {}
+                    }
+                }
+                parsed_module.classes.push(PyClass {
+                    name: class_name.to_string(),
+                    methods,
+                });
             }
             _ => {}
         }
@@ -147,6 +196,9 @@ struct Args {
     /// Optional function to analyze
     #[arg(short, long)]
     function: Option<String>,
+
+    #[arg(long)]
+    debug: bool,
 }
 
 fn main() -> io::Result<()> {
@@ -154,6 +206,7 @@ fn main() -> io::Result<()> {
     let base_path = args.project;
     let module_name = args.module;
     let function_name = args.function;
+    let debug = args.debug;
 
     let modules_to_paths = build_module_to_paths(&base_path)?;
 
@@ -165,6 +218,10 @@ fn main() -> io::Result<()> {
         let module = parse_module(&module_name, &source_code, path);
         modules.insert(module_name.to_string(), module);
     }
+    if debug {
+        println!("{:#?}", modules);
+    }
+
     print_transitive_deps(&modules, &module_name, function_name.as_deref())?;
 
     Ok(())

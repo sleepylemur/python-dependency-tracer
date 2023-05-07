@@ -8,5 +8,3 @@ implement one piece at a time
 - import \*
 - class method calls
 - trace method deps through class constructor
-
-recurse into functions in the same file

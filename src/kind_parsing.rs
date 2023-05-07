@@ -140,6 +140,7 @@ pub fn find_calls_in_expr(node: &ExprKind) -> Vec<String> {
             args,
             keywords: _,
         } => {
+            println!("func: {:#?}", func.node);
             if let Some(name) = match &func.node {
                 ExprKind::Attribute { .. } => convert_attribute_to_name(&func.node),
                 ExprKind::Name { id, ctx: _ } => Some(id.to_string()),
