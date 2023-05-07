@@ -66,6 +66,13 @@ fn parse_module(name: &str, source_code: &str, path: &Path) -> PyModule {
                 decorator_list: _,
                 returns: _,
                 type_comment: _,
+            } | ast::StmtKind::AsyncFunctionDef {
+                name,
+                args: _,
+                body,
+                decorator_list: _,
+                returns: _,
+                type_comment: _,
             } => {
                 let mut calls = vec![];
                 for stmt in body {
