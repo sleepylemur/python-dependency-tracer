@@ -77,6 +77,14 @@ pub fn add_function_dependencies_to_tree(
                     add_function_dependencies_to_tree(child_builder, modules, module, call);
 
                     tree_builder.end_child();
+                } else if functions.iter().any(|(function, _)| function == call) {
+                    // Check if the call references a function in the same module
+                    // Add the dependency to the tree
+                    let child_builder =
+                        tree_builder.begin_child(format!("{}::{}", module_name, call));
+
+                    // Recursively add the dependencies of the dependency to the tree
+                    add_function_dependencies_to_tree(child_builder, modules, module_name, call);
                 } else {
                     // Check if the call references a module
                     // Split the call into parts

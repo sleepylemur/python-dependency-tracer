@@ -7,6 +7,9 @@ def bloomabim():
     gofast()
     packageb.zoomier.zuglug()
     return bingbam()
+z
+def zorik():
+    return bloomabim()
 
 
 if __name__ == "__main__":
