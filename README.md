@@ -19,6 +19,6 @@ pydep -p example_project -m modulename -f functionname
 
 ## Run/install from local repo
 
-cargo run -- -p example_project -m modulename
+cargo run --release -- -p example_project -m modulename
 
 cargo install --path .gi
